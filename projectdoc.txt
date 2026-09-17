@@ -1,0 +1,807 @@
+Create a real-world production-ready frontend admin panel for a Property & Construction platform called UrbanKart.
+
+This should NOT be a demo design.
+This should work like a real application workflow.
+
+Use:
+- React.js
+- TypeScript
+- Material UI
+- Redux Toolkit
+- React Router
+- Static mock data for now
+- API-ready service architecture
+
+Important:
+Use static data only for now, but structure everything exactly like API response data.
+Later we will integrate backend APIs, so UI should not need major changes.
+
+==================================================
+MAIN WORKFLOW
+==================================================
+
+When app opens, first show Login Page.
+
+After login, redirect user based on role.
+
+Roles:
+1. Super Admin
+2. Admin
+3. Support Team
+4. Finance Team
+5. Legal Team
+
+Each role should see only their allowed dashboard, sidebar menus, pages, buttons, and actions.
+
+Do not show all features to every user.
+
+==================================================
+LOGIN FLOW
+==================================================
+
+Create login page with:
+
+- Email / Mobile
+- Password
+- Login Button
+- Forgot Password
+- Remember Me
+
+Use mock login users:
+
+Super Admin:
+email: superadmin@urbankart.com
+password: 123456
+
+Admin:
+email: admin@urbankart.com
+password: 123456
+
+Support:
+email: support@urbankart.com
+password: 123456
+
+Finance:
+email: finance@urbankart.com
+password: 123456
+
+Legal:
+email: legal@urbankart.com
+password: 123456
+
+After login:
+- Store user data in Redux
+- Store token in localStorage
+- Redirect to role-based dashboard
+- Protect routes
+- Logout should clear session
+
+==================================================
+ROLE BASED ACCESS CONTROL
+==================================================
+
+Create permission-based UI.
+
+Do not hardcode only role names in components.
+
+Create permissions like:
+
+users.view
+users.create
+users.edit
+users.delete
+
+properties.view
+properties.approve
+properties.reject
+properties.edit
+
+tickets.view
+tickets.assign
+tickets.close
+
+finance.view
+finance.refund
+finance.invoice
+
+legal.view
+legal.approve
+legal.reject
+
+reports.view
+settings.manage
+
+Sidebar, routes, buttons, table actions, and pages should be controlled by permissions.
+
+==================================================
+SUPER ADMIN ACCESS
+==================================================
+
+Super Admin can access:
+
+- Dashboard
+- User Management
+- Role Management
+- Property Management
+- Support Tickets
+- Finance
+- Legal Verification
+- Reports
+- Settings
+- Audit Logs
+
+Super Admin can:
+
+- Create user
+- Edit user
+- Suspend user
+- Assign role
+- Approve/reject property
+- View finance
+- View legal cases
+- View all reports
+- Manage settings
+
+==================================================
+ADMIN ACCESS
+==================================================
+
+Admin can access:
+
+- Dashboard
+- User Management
+- Property Management
+- Support Tickets
+- Reports
+
+Admin can:
+
+- View users
+- Edit users
+- Approve/reject property
+- Assign tickets
+- View reports
+
+Admin cannot access:
+
+- Finance
+- Legal document approval
+- Settings
+- Audit logs
+
+==================================================
+SUPPORT TEAM ACCESS
+==================================================
+
+Support Team can access:
+
+- Dashboard
+- Support Tickets
+- Users Read Only
+- Properties Read Only
+
+Support Team can:
+
+- View users
+- View properties
+- Create ticket note
+- Change ticket status
+- Escalate ticket
+
+Support Team cannot:
+
+- Delete users
+- Approve properties
+- View finance
+- View legal documents
+
+==================================================
+FINANCE TEAM ACCESS
+==================================================
+
+Finance Team can access:
+
+- Dashboard
+- Payments
+- Transactions
+- Invoices
+- Refunds
+- Subscription Plans
+- Finance Reports
+
+Finance Team can:
+
+- View transactions
+- Generate invoice
+- Process refund
+- View subscription revenue
+
+Finance Team cannot:
+
+- Approve properties
+- Edit legal verification
+- Manage users
+
+==================================================
+LEGAL TEAM ACCESS
+==================================================
+
+Legal Team can access:
+
+- Dashboard
+- Legal Verification
+- Property Documents
+- Verification Requests
+
+Legal Team can:
+
+- View property documents
+- Approve verification
+- Reject verification
+- Request more documents
+- Add legal remarks
+
+Legal Team cannot:
+
+- View finance reports
+- Manage system settings
+- Delete users
+
+==================================================
+REAL PROJECT MODULES ONLY
+==================================================
+
+Keep only required real modules:
+
+1. Authentication
+2. Dashboard
+3. User Management
+4. Role & Permission Management
+5. Property Management
+6. Property Verification
+7. Support Tickets
+8. Finance Management
+9. Legal Verification
+10. Reports
+11. Settings
+12. Audit Logs
+
+Remove unnecessary modules like:
+
+- Franchise Management
+- Auction
+- Rental Agreement
+- Call Center
+- White Label
+- Multi Tenant
+- Advanced AI modules
+- 100+ screens
+- Unrealistic billion-dollar features
+
+==================================================
+DASHBOARD
+==================================================
+
+Dashboard should be different for each role.
+
+Super Admin Dashboard:
+- Total Users
+- Total Properties
+- Pending Properties
+- Revenue
+- Open Tickets
+- Legal Pending
+- Recent Activities
+
+Admin Dashboard:
+- Total Users
+- Total Properties
+- Pending Approvals
+- Open Tickets
+
+Support Dashboard:
+- Open Tickets
+- Assigned Tickets
+- Escalated Tickets
+- Closed Tickets
+
+Finance Dashboard:
+- Total Revenue
+- Monthly Revenue
+- Refund Requests
+- Pending Invoices
+
+Legal Dashboard:
+- Pending Verification
+- Approved Verification
+- Rejected Verification
+- Documents Pending
+
+Use realistic mock data.
+
+==================================================
+USER MANAGEMENT
+==================================================
+
+Pages:
+
+- User List
+- Add User
+- Edit User
+- User Details
+
+User fields:
+
+- User ID
+- Name
+- Email
+- Mobile
+- Role
+- Status
+- Created Date
+- Last Login
+
+Actions:
+
+- View
+- Edit
+- Suspend
+- Activate
+- Delete
+
+Actions should show based on permission.
+
+==================================================
+ROLE MANAGEMENT
+==================================================
+
+Pages:
+
+- Role List
+- Create Role
+- Edit Role
+- Permission Matrix
+
+Role fields:
+
+- Role Name
+- Description
+- Permissions
+- Status
+
+Permission Matrix UI:
+Rows = modules
+Columns = View, Create, Edit, Delete, Approve, Reject, Export
+
+==================================================
+PROPERTY MANAGEMENT
+==================================================
+
+Pages:
+
+- Property List
+- Property Details
+- Add Property
+- Edit Property
+
+Property fields:
+
+- Property ID
+- Title
+- Type
+- Owner
+- Location
+- Price
+- Area
+- Status
+- Created Date
+
+Property types:
+
+- Plot
+- Agricultural Land
+- House
+- Commercial
+
+Property status:
+
+- Draft
+- Pending
+- Approved
+- Rejected
+- Sold
+
+Actions:
+
+- View
+- Edit
+- Approve
+- Reject
+- Mark as Sold
+
+==================================================
+PROPERTY VERIFICATION
+==================================================
+
+Verification workflow:
+
+Submitted
+↓
+Under Review
+↓
+Approved / Rejected
+
+Fields:
+
+- Property ID
+- Owner Name
+- Document Type
+- Document Status
+- Assigned Legal Member
+- Remarks
+
+Actions:
+
+- View Document
+- Approve
+- Reject
+- Request More Documents
+
+==================================================
+SUPPORT TICKETS
+==================================================
+
+Pages:
+
+- Ticket List
+- Ticket Details
+
+Ticket fields:
+
+- Ticket ID
+- User
+- Subject
+- Category
+- Priority
+- Status
+- Assigned To
+- Created Date
+
+Ticket status:
+
+- Open
+- In Progress
+- Escalated
+- Closed
+
+Actions:
+
+- Assign
+- Add Note
+- Change Status
+- Close Ticket
+
+==================================================
+FINANCE MANAGEMENT
+==================================================
+
+Pages:
+
+- Transactions
+- Invoices
+- Refunds
+- Subscription Revenue
+
+Transaction fields:
+
+- Transaction ID
+- User
+- Amount
+- Payment Method
+- Status
+- Date
+
+Invoice fields:
+
+- Invoice ID
+- User
+- Amount
+- GST
+- Status
+- Download
+
+Refund fields:
+
+- Refund ID
+- User
+- Amount
+- Reason
+- Status
+
+==================================================
+LEGAL VERIFICATION
+==================================================
+
+Pages:
+
+- Legal Queue
+- Legal Case Details
+
+Fields:
+
+- Case ID
+- Property ID
+- Owner
+- Document Type
+- Status
+- Assigned To
+- Remarks
+
+Actions:
+
+- Approve
+- Reject
+- Request More Documents
+- Add Legal Note
+
+==================================================
+REPORTS
+==================================================
+
+Reports should be role-wise.
+
+Super Admin:
+- User Report
+- Property Report
+- Finance Report
+- Legal Report
+
+Admin:
+- User Report
+- Property Report
+- Ticket Report
+
+Finance:
+- Revenue Report
+- Invoice Report
+- Refund Report
+
+Legal:
+- Verification Report
+
+Support:
+- Ticket Report
+
+Features:
+
+- Date Filter
+- Export CSV
+- Export PDF
+
+==================================================
+SETTINGS
+==================================================
+
+Only Super Admin can access settings.
+
+Settings:
+
+- General Settings
+- Payment Settings
+- Notification Settings
+- Security Settings
+
+==================================================
+AUDIT LOGS
+==================================================
+
+Only Super Admin can access.
+
+Track:
+
+- Login
+- Logout
+- User Created
+- User Updated
+- Property Approved
+- Property Rejected
+- Payment Refunded
+- Legal Verification Approved
+
+Fields:
+
+- User
+- Action
+- Module
+- Date
+- IP Address
+
+==================================================
+COMMON COMPONENTS
+==================================================
+
+Create reusable components:
+
+- AppLayout
+- Sidebar
+- Header
+- ProtectedRoute
+- PermissionGuard
+- AppButton
+- AppInput
+- AppSelect
+- AppModal
+- AppTable
+- AppCard
+- StatusBadge
+- ConfirmDialog
+- PageHeader
+- SearchFilter
+- DateRangeFilter
+- EmptyState
+- Loader
+- Toast Notification
+
+All screens must use common components.
+
+==================================================
+STATIC DATA & API READY STRUCTURE
+==================================================
+
+Use static mock data now.
+
+Create:
+
+src/mock-data/users.mock.ts
+src/mock-data/properties.mock.ts
+src/mock-data/tickets.mock.ts
+src/mock-data/finance.mock.ts
+src/mock-data/legal.mock.ts
+src/mock-data/reports.mock.ts
+src/mock-data/roles.mock.ts
+src/mock-data/audit.mock.ts
+
+Create services:
+
+src/services/auth.service.ts
+src/services/user.service.ts
+src/services/property.service.ts
+src/services/ticket.service.ts
+src/services/finance.service.ts
+src/services/legal.service.ts
+src/services/report.service.ts
+
+Services should return mock data now.
+
+Example:
+
+login()
+getUsers()
+createUser()
+updateUser()
+deleteUser()
+getProperties()
+approveProperty()
+rejectProperty()
+
+Later backend APIs should replace only service layer.
+
+==================================================
+FOLDER STRUCTURE
+==================================================
+
+src/
+  app/
+    store.ts
+  components/
+    common/
+    layout/
+  modules/
+    auth/
+    dashboard/
+    users/
+    roles/
+    properties/
+    tickets/
+    finance/
+    legal/
+    reports/
+    settings/
+    audit/
+  mock-data/
+  services/
+  routes/
+  types/
+  utils/
+  constants/
+
+==================================================
+UI REQUIREMENTS
+==================================================
+
+Use real admin panel design.
+
+Desktop first.
+
+Responsive for tablet and mobile.
+
+Design should include:
+
+- Left sidebar
+- Top header
+- Breadcrumb
+- Page title
+- Data tables
+- Filters
+- Modals
+- Forms
+- Detail pages
+- Role-based dashboards
+
+Colors:
+
+Primary: #1A0533
+Secondary: #6D28D9
+Success: #22C55E
+Warning: #F59E0B
+Danger: #EF4444
+Background: #F8FAFC
+
+Use clean enterprise UI.
+
+==================================================
+VALIDATION
+==================================================
+
+All forms should have validation.
+
+Use Yup or Zod.
+
+Show proper error messages.
+
+==================================================
+IMPORTANT DEVELOPMENT RULES
+==================================================
+
+1. First screen must be login page.
+2. User must login using mock credentials.
+3. After login, show role-wise dashboard.
+4. Sidebar menu must be role-wise.
+5. Buttons/actions must be permission-wise.
+6. Use static data only for now.
+7. Do not directly write static data inside components.
+8. All data should come from service layer.
+9. All pages should be API-ready.
+10. Do not add unwanted modules.
+11. Keep project realistic and development-ready.
+12. Create complete working frontend, not just UI mockup.
+13. Use TypeScript types/interfaces properly.
+14. Maintain clean folder structure.
+15. Add logout functionality.
+16. Add protected routes.
+17. Add permission guard.
+
+==================================================
+FINAL OUTPUT EXPECTED
+==================================================
+
+Generate a complete working React.js admin frontend project with:
+
+- Login workflow
+- Role-wise routing
+- Role-wise sidebar
+- Permission-based actions
+- Realistic static data
+- Reusable components
+- Complete modules
+- Dashboard for each role
+- Forms
+- Tables
+- Details pages
+- Mock services
+- Redux auth flow
+- Protected routes
+- Clean UI
+- Production-ready architecture
+
+This should be ready for backend API integration after UI completion.
