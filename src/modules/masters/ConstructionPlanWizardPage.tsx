@@ -33,8 +33,14 @@ function WizardField({ field, value, onChange }: { field: WizardFieldConfig; val
     return <StatusToggle value={valueToString(value) || "Draft"} onChange={onChange} />;
   }
 
+  // Out-of-MVP-scope wizard; "construction" is the closest matching backend
+  // upload module (1SqrPropertyBackend's uploadModules enum) for plan
+  // thumbnails/brochures/gallery images. Kept as one hardcoded value here
+  // rather than threading a per-field uploadModule through
+  // constructionPlanWizardConfig.ts, consistent with this page's minimal-fix
+  // scope.
   if (field.type === "image" || field.type === "file") {
-    return <MasterUploadField label={field.label} value={valueToString(value)} accept={field.type === "image" ? "image/*" : undefined} onChange={onChange} />;
+    return <MasterUploadField label={field.label} value={valueToString(value)} accept={field.type === "image" ? "image/*" : undefined} module="construction" onChange={onChange} />;
   }
 
   if (field.type === "multifile") {
@@ -43,6 +49,7 @@ function WizardField({ field, value, onChange }: { field: WizardFieldConfig; val
         label={field.label}
         value={valueToString(value)}
         accept="image/*"
+        module="construction"
         onChange={(fileId) => {
           const existing = Array.isArray(value) ? value : valueToString(value) ? valueToString(value).split(",").map((item) => item.trim()) : [];
           onChange([...existing, fileId]);

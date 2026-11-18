@@ -84,7 +84,7 @@ const NavButton = styled(NavLink)(({ theme }) => ({
 
 const groups = [
   { title: "Workspace", labels: ["Dashboard", "Lead Management", "Customer Management", "Broker Management", "Property Management"] },
-  { title: "Services", labels: ["Construction Management", "Material Suppliers", "Service Providers", "Support Tickets"] },
+    { title: "Services", labels: ["Construction Management", "Construction Builders", "Plan Approvals", "Construction RFQs", "Material Suppliers", "Service Providers", "Support Tickets"] },
   { title: "Admin", labels: ["Masters", "Notifications", "Reports", "Role Management", "Permission Management", "Employee Management", "Audit Logs", "Business Settings", "Legacy Users"] },
 ];
 
@@ -172,7 +172,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               <Collapse in={groupOpen} timeout={180}>
                 <Stack spacing={0.5}>
                   {group.items.map((item) => {
-                    const active = location.pathname === item!.path || location.pathname.startsWith(`${item!.path}/`);
+                    const active = location.pathname === item!.path || (item!.path !== "/construction" && location.pathname.startsWith(`${item!.path}/`));
                     const nav = (
                       <NavButton to={item!.path} className={active ? "active" : undefined}>
                         {item!.icon}

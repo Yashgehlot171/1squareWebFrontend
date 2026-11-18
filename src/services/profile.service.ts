@@ -27,8 +27,14 @@ export const profileService = {
   uploadFile,
 
   async uploadAvatarFile(file: File | Blob) {
+    // Backend's multer config is `upload.single("file")` (see
+    // 1SqrPropertyBackend/src/routes/upload.routes.ts) — the multipart field
+    // must be literally named "file", not "avatar", or multer never finds
+    // the file (previously silently broken, separate from the missing
+    // `module` below). `module: "profile"` is required by
+    // `createUploadSchema` or the backend returns 422.
     return uploadFile<{ url: string; avatar?: string }>(file, {
-      fieldName: "avatar",
+      extraFields: { module: "profile" },
     });
   },
 };

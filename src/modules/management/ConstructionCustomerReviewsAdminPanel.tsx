@@ -1,0 +1,10 @@
+import {useEffect, useState} from 'react';
+import {Alert, Box, Card, CardContent, Chip, Stack, Typography} from '@mui/material';
+import {adminConstructionService, type AdminConstructionCustomerReview} from '../../services/adminConstruction.service';
+
+export function ConstructionCustomerReviewsAdminPanel({projectId}: {projectId: string}) {
+  const [data, setData] = useState<AdminConstructionCustomerReview>(); const [error, setError] = useState('');
+  useEffect(() => {adminConstructionService.getProjectReview(projectId).then(setData).catch(reason => setError(reason.message));}, [projectId]);
+  const review = data?.review;
+  return <Box mt={3}><Typography variant="h5" fontWeight={900} mb={1.5}>Customer Review</Typography>{error ? <Alert severity="error">{error}</Alert> : null}{data ? review ? <Card variant="outlined"><CardContent><Stack spacing={.75}><Stack direction="row" spacing={1} alignItems="center"><Typography fontWeight={900}>{review.rating} / 5</Typography><Chip size="small" color={review.verified ? 'success' : 'default'} label={review.verified ? 'Verified 1SQUARE Project' : 'Unverified'}/></Stack><Typography>Customer: {review.customerReference}</Typography><Typography>Builder: {review.builderName}</Typography><Typography>{review.reviewText || 'No written review.'}</Typography>{[['Work Quality', review.workQualityRating], ['Communication', review.communicationRating], ['Timeliness', review.timelinessRating], ['Value for Money', review.valueForMoneyRating]].map(([label, value]) => value == null ? null : <Typography key={String(label)} variant="body2">{label}: {value} / 5</Typography>)}<Typography variant="caption">Created: {new Date(review.createdAt).toLocaleString('en-IN')}</Typography><Typography variant="caption">Updated: {new Date(review.updatedAt).toLocaleString('en-IN')}</Typography><Typography variant="caption">Verification source: Completed project and Customer accepted handover</Typography></Stack></CardContent></Card> : <Card variant="outlined"><CardContent><Typography>No Customer review has been submitted for this project.</Typography></CardContent></Card> : null}</Box>;
+}

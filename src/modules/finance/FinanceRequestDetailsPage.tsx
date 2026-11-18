@@ -94,7 +94,19 @@ export function FinanceRequestDetailsPage() {
             submitLabel="Update Finance Request"
             onSubmit={async (payload) => {
               await financeService.updateFinanceRequest(type, id, payload);
-              setRecord((current) => (current ? { ...current, status: payload.status as FinanceRecord["status"] } : current));
+              if (type === "transaction") {
+                setRecord((current) => current && "paymentMethod" in current
+                  ? { ...current, status: payload.status as TransactionRecord["status"] }
+                  : current);
+              } else if (type === "invoice") {
+                setRecord((current) => current && "gst" in current
+                  ? { ...current, status: payload.status as InvoiceRecord["status"] }
+                  : current);
+              } else {
+                setRecord((current) => current && "reason" in current
+                  ? { ...current, status: payload.status as RefundRecord["status"] }
+                  : current);
+              }
               setToast("Finance request updated.");
             }}
           />

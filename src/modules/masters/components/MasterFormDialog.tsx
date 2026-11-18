@@ -2,7 +2,7 @@ import { DialogActions, Grid, MenuItem, TextField } from "@mui/material";
 import { AppButton } from "../../../components/common/AppButton";
 import { AppInput } from "../../../components/common/AppInput";
 import { AppModal } from "../../../components/common/AppModal";
-import type { MasterConfig, MasterFieldConfig, MasterRecord, MasterRecordValue } from "../types";
+import { normalizeMasterOptions, type MasterConfig, type MasterFieldConfig, type MasterRecord, type MasterRecordValue } from "../types";
 import { MasterUploadField } from "./MasterUploadField";
 import { StatusToggle } from "./StatusToggle";
 
@@ -18,7 +18,7 @@ interface MasterFormDialogProps {
 }
 
 const getOptions = (field: MasterFieldConfig, recordsByMaster: Record<string, MasterRecord[]>) =>
-  typeof field.options === "function" ? field.options(recordsByMaster) : field.options ?? [];
+  normalizeMasterOptions((typeof field.options === "function" ? field.options(recordsByMaster) : field.options) ?? []);
 
 const toInputValue = (value: MasterRecordValue) => (value === null || value === undefined ? "" : String(value));
 
@@ -43,8 +43,8 @@ export function MasterFormDialog({ open, mode, config, value, recordsByMaster, o
               <Grid item xs={12} md={6} key={field.key}>
                 <TextField select fullWidth size="small" label={`${field.label}${field.required ? " *" : ""}`} value={toInputValue(fieldValue)} onChange={(event) => setField(field.key, event.target.value)}>
                   {getOptions(field, recordsByMaster).map((option) => (
-                    <MenuItem key={option} value={option}>
-                      {option}
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
                     </MenuItem>
                   ))}
                 </TextField>
@@ -53,9 +53,20 @@ export function MasterFormDialog({ open, mode, config, value, recordsByMaster, o
           }
 
           if (field.type === "file" || field.type === "image") {
+            // `uploadModule` must be set per-field in masterConfigs.ts (backend
+            // requires `module` on every /uploads request). "cms" is a
+            // defensive fallback only — every field wired today (propertyType
+            // and amenities icons, banner image) sets it explicitly.
             return (
               <Grid item xs={12} md={6} key={field.key}>
-                <MasterUploadField label={field.label} value={toInputValue(fieldValue)} accept={field.type === "image" ? "image/*" : undefined} onChange={(fileId) => setField(field.key, fileId)} />
+                <MasterUploadField
+                  label={field.label}
+                  value={toInputValue(fieldValue)}
+                  accept={field.type === "image" ? "image/*" : undefined}
+                  module={field.uploadModule ?? "cms"}
+                  previewUrl={field.previewUrlKey ? toInputValue(value[field.previewUrlKey]) || undefined : undefined}
+                  onChange={(fileId) => setField(field.key, fileId)}
+                />
               </Grid>
             );
           }

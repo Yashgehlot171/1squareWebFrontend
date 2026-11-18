@@ -16,7 +16,15 @@ import { ForbiddenPage } from "../modules/forbidden/ForbiddenPage";
 import { LegalCaseDetailsPage } from "../modules/legal/LegalCaseDetailsPage";
 import { LegalPage } from "../modules/legal/LegalPage";
 import { BrokerManagementPage } from "../modules/management/BrokerManagementPage";
+import { BuyerLeadPurchasesPage } from "../modules/management/BuyerLeadPurchasesPage";
+import { BankManagementPage } from "../modules/masters/BankManagementPage";
+import { BannerManagementPage } from "../modules/masters/BannerManagementPage";
 import { ConstructionManagementPage } from "../modules/management/ConstructionManagementPage";
+import { ConstructionBuildersPage } from "../modules/management/ConstructionBuildersPage";
+import { ConstructionPlanApprovalsPage } from "../modules/management/ConstructionPlanApprovalsPage";
+import { ConstructionRfqsPage } from "../modules/management/ConstructionRfqsPage";
+import { ConstructionProjectsPage } from "../modules/management/ConstructionProjectsPage";
+import { ConstructionRevenuePage } from "../modules/management/ConstructionRevenuePage";
 import { CustomerManagementPage } from "../modules/management/CustomerManagementPage";
 import { EmployeeManagementPage } from "../modules/management/EmployeeManagementPage";
 import { LeadManagementPage } from "../modules/management/LeadManagementPage";
@@ -36,10 +44,7 @@ import { PermissionMatrixPage } from "../modules/roles/PermissionMatrixPage";
 import { RoleFormPage } from "../modules/roles/RoleFormPage";
 import { RolesPage } from "../modules/roles/RolesPage";
 import { SettingsPage } from "../modules/settings/SettingsPage";
-import { TicketDetailsPage } from "../modules/tickets/TicketDetailsPage";
 import { TicketsPage } from "../modules/tickets/TicketsPage";
-import { UserDetailsPage } from "../modules/users/UserDetailsPage";
-import { UserFormPage } from "../modules/users/UserFormPage";
 import { UsersPage } from "../modules/users/UsersPage";
 import { authService } from "../services/auth.service";
 import type { Permission } from "../types";
@@ -90,31 +95,64 @@ function AppShell() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/change-password" element={<PasswordFormPage mode="change" />} />
         <Route path="/leads" element={<RouteGuard permission="LEAD_VIEW"><LeadManagementPage /></RouteGuard>} />
-        <Route path="/customers" element={<RouteGuard permission="CUSTOMER_VIEW"><CustomerManagementPage /></RouteGuard>} />
-        <Route path="/brokers" element={<RouteGuard permission="BROKER_VIEW"><BrokerManagementPage /></RouteGuard>} />
+        {/*
+          Permission slugs below fixed from the mock-era EMPLOYEE_VIEW/BROKER_VIEW/
+          CUSTOMER_VIEW/EMPLOYEE_CREATE/EMPLOYEE_EDIT invented slugs to the real backend
+          ones. Verified against 1SqrPropertyBackend/prisma/seed.ts's permission seed
+          list and src/routes/adminUser.routes.ts: the ONLY permissions that exist for
+          the users domain are USER_VIEW / USER_CREATE / USER_EDIT (there is no
+          USER_DELETE, and no EMPLOYEE-prefixed, BROKER-prefixed or CUSTOMER-prefixed
+          permission anywhere in the backend). Under the old slugs, any admin who
+          wasn't super-admin (i.e. did not
+          get the "ALL" bypass) could never actually pass these guards, since a
+          permission that no role can ever hold always evaluates false.
+        */}
+        <Route path="/customers" element={<RouteGuard permission="USER_VIEW"><CustomerManagementPage /></RouteGuard>} />
+        <Route path="/brokers" element={<RouteGuard permission="USER_VIEW"><BrokerManagementPage /></RouteGuard>} />
         <Route path="/construction" element={<RouteGuard permission="CONSTRUCTION_VIEW"><ConstructionManagementPage /></RouteGuard>} />
-        <Route path="/material-suppliers" element={<RouteGuard permission="MATERIAL_SUPPLIER_VIEW"><MaterialSupplierManagementPage /></RouteGuard>} />
-        <Route path="/service-providers" element={<RouteGuard permission="SERVICE_PROVIDER_VIEW"><ServiceProviderManagementPage /></RouteGuard>} />
+        <Route path="/construction/builders" element={<RouteGuard permission="CONSTRUCTION_VIEW"><ConstructionBuildersPage /></RouteGuard>} />
+        <Route path="/construction/builders/:userId" element={<RouteGuard permission="CONSTRUCTION_VIEW"><ConstructionBuildersPage /></RouteGuard>} />
+        <Route path="/construction/plan-approvals" element={<RouteGuard permission="CONSTRUCTION_VIEW"><ConstructionPlanApprovalsPage /></RouteGuard>} />
+        <Route path="/construction/plan-approvals/:versionId" element={<RouteGuard permission="CONSTRUCTION_VIEW"><ConstructionPlanApprovalsPage /></RouteGuard>} />
+        <Route path="/construction/rfqs" element={<RouteGuard permission="CONSTRUCTION_VIEW"><ConstructionRfqsPage /></RouteGuard>} />
+        <Route path="/construction/rfqs/:id" element={<RouteGuard permission="CONSTRUCTION_VIEW"><ConstructionRfqsPage /></RouteGuard>} />
+        <Route path="/construction/projects" element={<RouteGuard permission="CONSTRUCTION_VIEW"><ConstructionProjectsPage /></RouteGuard>} />
+        <Route path="/construction/projects/:id" element={<RouteGuard permission="CONSTRUCTION_VIEW"><ConstructionProjectsPage /></RouteGuard>} />
+        <Route path="/construction/revenue" element={<RouteGuard permission="CONSTRUCTION_VIEW"><ConstructionRevenuePage /></RouteGuard>} />
+        <Route path="/material-suppliers" element={<RouteGuard permission="SUPPLIER_VIEW"><MaterialSupplierManagementPage /></RouteGuard>} />
+        <Route path="/service-providers" element={<RouteGuard permission="PROVIDER_VIEW"><ServiceProviderManagementPage /></RouteGuard>} />
         <Route path="/masters" element={<RouteGuard permission="MASTER_VIEW"><MasterManagementPage /></RouteGuard>} />
         <Route path="/masters/construction-plans/new" element={<RouteGuard permission="MASTER_VIEW"><ConstructionPlanWizardPage /></RouteGuard>} />
         <Route path="/masters/construction-plans/:id/edit" element={<RouteGuard permission="MASTER_VIEW"><ConstructionPlanWizardPage /></RouteGuard>} />
+        <Route path="/banks" element={<RouteGuard permission="BANK_VIEW"><BankManagementPage /></RouteGuard>} />
+        <Route path="/banners" element={<RouteGuard permission="BANNER_VIEW"><BannerManagementPage /></RouteGuard>} />
         <Route path="/notifications" element={<RouteGuard permission="NOTIFICATION_VIEW"><NotificationManagementPage /></RouteGuard>} />
-        <Route path="/employees" element={<RouteGuard permission="EMPLOYEE_VIEW"><EmployeeManagementPage /></RouteGuard>} />
-        <Route path="/users" element={<RouteGuard permission="EMPLOYEE_VIEW"><UsersPage /></RouteGuard>} />
-        <Route path="/users/new" element={<RouteGuard permission="EMPLOYEE_CREATE"><UserFormPage /></RouteGuard>} />
-        <Route path="/users/:id" element={<RouteGuard permission="EMPLOYEE_VIEW"><UserDetailsPage /></RouteGuard>} />
-        <Route path="/users/:id/edit" element={<RouteGuard permission="EMPLOYEE_EDIT"><UserFormPage /></RouteGuard>} />
+        <Route path="/employees" element={<RouteGuard permission="USER_VIEW"><EmployeeManagementPage /></RouteGuard>} />
+        {/*
+          /users/new, /users/:id and /users/:id/edit removed: UsersPage now renders
+          create/view/edit/status/role actions as modals (UserListPage), matching the
+          pattern already established by LeadManagementPage, instead of separate mock
+          form/detail routes. UserFormPage.tsx and UserDetailsPage.tsx (mock-only, no
+          real service calls) were deleted along with them.
+        */}
+        <Route path="/users" element={<RouteGuard permission="USER_VIEW"><UsersPage /></RouteGuard>} />
         <Route path="/roles" element={<RouteGuard permission="ROLE_VIEW"><RolesPage /></RouteGuard>} />
         <Route path="/roles/new" element={<RouteGuard permission="ROLE_CREATE"><RoleFormPage /></RouteGuard>} />
         <Route path="/roles/:id/edit" element={<RouteGuard permission="ROLE_EDIT"><RoleFormPage /></RouteGuard>} />
         <Route path="/roles/matrix" element={<RouteGuard permission="PERMISSION_VIEW"><PermissionMatrixPage /></RouteGuard>} />
         <Route path="/properties" element={<RouteGuard permission="PROPERTY_VIEW"><PropertiesPage /></RouteGuard>} />
+        <Route path="/property-lead-purchases" element={<RouteGuard permission="PROPERTY_VIEW"><BuyerLeadPurchasesPage /></RouteGuard>} />
         <Route path="/properties/new" element={<RouteGuard permission="PROPERTY_CREATE"><PropertyFormPage /></RouteGuard>} />
         <Route path="/properties/:id" element={<RouteGuard permission="PROPERTY_VIEW"><PropertyDetailsPage /></RouteGuard>} />
         <Route path="/properties/:id/edit" element={<RouteGuard permission="PROPERTY_EDIT"><PropertyFormPage /></RouteGuard>} />
         <Route path="/verification" element={<RouteGuard permission="PROPERTY_VIEW"><PropertyVerificationPage /></RouteGuard>} />
+        {/*
+          /tickets/:id removed: TicketsPage now renders ticket detail, assign, reply,
+          remark, status, and close actions as modals, matching the pattern already
+          established by LeadManagementPage, instead of a separate mock detail route.
+          TicketDetailsPage.tsx (mock-only) was deleted along with it.
+        */}
         <Route path="/tickets" element={<RouteGuard permission="SUPPORT_TICKET_VIEW"><TicketsPage /></RouteGuard>} />
-        <Route path="/tickets/:id" element={<RouteGuard permission="SUPPORT_TICKET_VIEW"><TicketDetailsPage /></RouteGuard>} />
         <Route path="/finance" element={<RouteGuard permission="REPORT_VIEW"><FinancePage /></RouteGuard>} />
         <Route path="/finance/:type/:id" element={<RouteGuard permission="REPORT_VIEW"><FinanceRequestDetailsPage /></RouteGuard>} />
         <Route path="/legal" element={<RouteGuard permission="PROPERTY_VIEW"><LegalPage /></RouteGuard>} />

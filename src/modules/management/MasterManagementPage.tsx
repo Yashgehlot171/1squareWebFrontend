@@ -1,6 +1,6 @@
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
-import { Alert, Grid, MenuItem, Stack, Tab, Tabs, TextField, Typography } from "@mui/material";
-import { useMemo, useState } from "react";
+import { Alert, CircularProgress, Grid, MenuItem, Stack, Tab, Tabs, TextField, Typography } from "@mui/material";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppButton } from "../../components/common/AppButton";
 import { AppCard } from "../../components/common/AppCard";
@@ -11,7 +11,7 @@ import { ToastNotification } from "../../components/common/ToastNotification";
 import { MasterDataTable } from "../masters/components/MasterDataTable";
 import { MasterFormDialog } from "../masters/components/MasterFormDialog";
 import { initialMasterRecords, masterConfigs } from "../masters/config/masterConfigs";
-import type { MasterConfig, MasterRecord } from "../masters/types";
+import { normalizeMasterOptions, type MasterConfig, type MasterRecord } from "../masters/types";
 
 const createEmptyRecord = (config: MasterConfig): MasterRecord =>
   config.fields.reduce<MasterRecord>(
@@ -36,9 +36,53 @@ export function MasterManagementPage() {
   const [deleteRecord, setDeleteRecord] = useState<MasterRecord | null>(null);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const activeConfig = masterConfigs.find((config) => config.key === activeMasterKey) ?? masterConfigs[0];
   const activeRecords = recordsByMaster[activeConfig.key] ?? [];
+
+  // Master types wired to the real backend (currently State/City/Area — see
+  // masterConfigs.ts) carry an `api` block. City/Area's option/label lookups
+  // depend on State/City respectively, so whenever any api-backed tab is
+  // opened, all api-backed masters are (re)loaded together in one pass —
+  // simplest way to guarantee a freshly-created State is already available
+  // in City's dropdown, an area's city dropdown has data even if the user
+  // never visited the City tab first, etc. Master types still on the local
+  // mock pattern (no `api`) are untouched and keep using `initialRows`.
+  useEffect(() => {
+    const apiConfigs = masterConfigs.filter((config) => config.api);
+    if (!apiConfigs.some((config) => config.key === activeMasterKey)) {
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+    setError("");
+
+    Promise.all(apiConfigs.map(async (config) => [config.key, await config.api!.list()] as const))
+      .then((entries) => {
+        if (cancelled) return;
+        setRecordsByMaster((current) => {
+          const next = { ...current };
+          entries.forEach(([key, rows]) => {
+            next[key] = rows;
+          });
+          return next;
+        });
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : `Failed to load ${activeConfig.title.toLowerCase()} data.`);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeMasterKey]);
 
   const filteredRecords = useMemo(
     () =>
@@ -85,10 +129,32 @@ export function MasterManagementPage() {
     setDialogOpen(true);
   };
 
-  const saveRecord = () => {
+  const saveRecord = async () => {
     const missingField = activeConfig.fields.find((field) => field.required && !recordValue(formRecord, field.key));
     if (missingField) {
       setError(`${missingField.label} is required.`);
+      return;
+    }
+
+    if (activeConfig.api) {
+      setError("");
+      setLoading(true);
+      try {
+        if (editingRecord) {
+          const updated = await activeConfig.api.update(editingRecord.id, formRecord);
+          updateActiveRecords((rows) => rows.map((row) => (row.id === updated.id ? updated : row)));
+          setToast(`${activeConfig.title} updated.`);
+        } else {
+          const created = await activeConfig.api.create(formRecord);
+          updateActiveRecords((rows) => [created, ...rows]);
+          setToast(`${activeConfig.title} created.`);
+        }
+        setDialogOpen(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : `Failed to save ${activeConfig.title.toLowerCase()}.`);
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 
@@ -102,16 +168,49 @@ export function MasterManagementPage() {
     setDialogOpen(false);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleteRecord) {
       return;
     }
+
+    if (activeConfig.api) {
+      setError("");
+      setLoading(true);
+      try {
+        await activeConfig.api.remove(deleteRecord.id);
+        updateActiveRecords((rows) => rows.filter((row) => row.id !== deleteRecord.id));
+        setToast(`${activeConfig.title} deleted.`);
+        setDeleteRecord(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : `Failed to delete ${activeConfig.title.toLowerCase()}.`);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     updateActiveRecords((rows) => rows.filter((row) => row.id !== deleteRecord.id));
     setDeleteRecord(null);
     setToast(`${activeConfig.title} deleted.`);
   };
 
-  const filterOptions = (filter: NonNullable<MasterConfig["filters"]>[number]) => (typeof filter.options === "function" ? filter.options(recordsByMaster) : filter.options);
+  const toggleStatus = async (record: MasterRecord, status: string) => {
+    if (activeConfig.api) {
+      setError("");
+      try {
+        const updated = await activeConfig.api.updateStatus(record.id, status);
+        updateActiveRecords((rows) => rows.map((row) => (row.id === updated.id ? updated : row)));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : `Failed to update ${activeConfig.title.toLowerCase()} status.`);
+      }
+      return;
+    }
+
+    updateActiveRecords((rows) => rows.map((row) => (row.id === record.id ? { ...row, status } : row)));
+  };
+
+  const filterOptions = (filter: NonNullable<MasterConfig["filters"]>[number]) =>
+    normalizeMasterOptions((typeof filter.options === "function" ? filter.options(recordsByMaster) : filter.options) ?? []);
 
   return (
     <>
@@ -124,6 +223,16 @@ export function MasterManagementPage() {
           <Tabs
             value={activeMasterKey}
             onChange={(_, value: string) => {
+              const nextConfig = masterConfigs.find((config) => config.key === value);
+              if (nextConfig?.redirectPath) {
+                // This tab has no inline table of its own (e.g. Banner) — it
+                // just links out to its real, dedicated full-page CRUD
+                // screen. Deliberately does not update `activeMasterKey`, so
+                // the tab bar's selection stays on whatever master was
+                // showing before the click.
+                navigate(nextConfig.redirectPath);
+                return;
+              }
               setActiveMasterKey(value);
               setSearch("");
               setFilters({});
@@ -149,8 +258,8 @@ export function MasterManagementPage() {
                 <TextField select fullWidth size="small" label={filter.label} value={filters[filter.key] ?? ""} onChange={(event) => setFilters((current) => ({ ...current, [filter.key]: event.target.value }))}>
                   <MenuItem value="">All</MenuItem>
                   {filterOptions(filter).map((option) => (
-                    <MenuItem key={option} value={option}>
-                      {option}
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
                     </MenuItem>
                   ))}
                 </TextField>
@@ -158,7 +267,7 @@ export function MasterManagementPage() {
             ))}
             <Grid item xs={12} md={3}>
               <Stack direction="row" justifyContent="flex-end">
-                <AppButton startIcon={<AddRoundedIcon />} onClick={openCreate}>
+                <AppButton startIcon={<AddRoundedIcon />} onClick={openCreate} disabled={loading}>
                   Add New
                 </AppButton>
               </Stack>
@@ -166,15 +275,15 @@ export function MasterManagementPage() {
           </Grid>
         </AppCard>
 
-        <MasterDataTable
-          rows={filteredRecords}
-          columns={activeConfig.columns}
-          onEdit={openEdit}
-          onDelete={setDeleteRecord}
-          onToggleStatus={(record, status) => updateActiveRecords((rows) => rows.map((row) => (row.id === record.id ? { ...row, status } : row)))}
-        />
+        {loading && !activeRecords.length ? (
+          <Stack alignItems="center" py={4}>
+            <CircularProgress size={28} />
+          </Stack>
+        ) : (
+          <MasterDataTable rows={filteredRecords} columns={activeConfig.columns} onEdit={openEdit} onDelete={setDeleteRecord} onToggleStatus={toggleStatus} />
+        )}
 
-        {!activeRecords.length ? (
+        {!loading && !activeRecords.length ? (
           <Typography variant="caption" color="text.secondary">
             No data exists for this master yet.
           </Typography>

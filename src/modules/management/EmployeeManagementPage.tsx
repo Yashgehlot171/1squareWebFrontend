@@ -1,17 +1,20 @@
-import { managementRecords } from "../../mock-data/management.mock";
-import { ManagementPage } from "../common/ManagementPage";
+import { STAFF_ROLE_SLUGS } from "../../services/user.service";
+import { UserListPage } from "../users/UserListPage";
 
+/**
+ * "Employees" = internal staff, defined as every seeded role EXCEPT the
+ * customer-facing ones (customer/buyer/seller/broker) — see
+ * STAFF_ROLE_SLUGS's doc comment in user.service.ts for why this specific
+ * set was chosen (it mirrors the backend's own ADMIN_ROLE_SLUGS constant).
+ */
 export function EmployeeManagementPage() {
   return (
-    <ManagementPage
+    <UserListPage
       title="Employee Management"
-      subtitle="Employees, role assignments, and operational access controls."
-      moduleKey="employee"
-      viewPermission="EMPLOYEE_VIEW"
-      createPermission="EMPLOYEE_CREATE"
-      editPermission="EMPLOYEE_EDIT"
-      blockPermission="EMPLOYEE_DELETE"
-      records={managementRecords.employees}
+      subtitle="Internal staff (admin, support, finance, legal, construction), role assignments, and operational access controls."
+      roleFilter={STAFF_ROLE_SLUGS}
+      assignableRoleSlugs={STAFF_ROLE_SLUGS}
+      emptyTitle="No employees found"
     />
   );
 }
